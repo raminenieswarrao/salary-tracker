@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#0d1729">
+
+    <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
+    <title>Transactions · Salary Tracker</title>
+    <link rel="stylesheet" th:href="@{/css/app.css}">
+</head>
+<body>
+<div th:replace="~{fragments/nav :: nav('transactions')}"></div>
+<main class="page-shell">
+    <div th:replace="~{fragments/alerts :: alerts}"></div>
+
+    <section class="section-heading transactions-heading">
+        <div>
+            <p class="eyebrow">TRANSACTION HISTORY</p>
+            <h1>Monthly payment records</h1>
+            <p class="muted">Filter by client, work year, work month, paid year, paid month, or payment status.</p>
+        </div>
+        <a class="button button-primary" th:href="@{/records/new}" th:if="${!clients.isEmpty()}">+ Add monthly record</a>
+    </section>
+
+    <form class="filter-card" method="get" th:action="@{/records}">
+        <div class="filter-grid">
+            <div class="field">
+                <label for="clientId">Client</label>
+                <select id="clientId" name="clientId">
+                    <option value="">All clients</option>
+                    <option th:each="client : ${clients}" th:value="${client.id}" th:text="${client.clientName}" th:selected="${selectedClientId == client.id}"></option>
+                </select>
+            </div>
+            <div class="field">
+                <label for="year">Work Year</label>
+                <select id="year" name="year">
+                    <option value="">All years</option>
+                    <option th:each="y : ${years}" th:value="${y}" th:text="${y}" th:selected="${selectedYear == y}"></option>
+                </select>
+            </div>
+            <div class="field">
+                <label for="month">Work Month</label>
+                <select id="month" name="month">
+                    <option value="">All months</option>
+                    <option th:each="m : ${months}" th:value="${m.value}" th:text="${#strings.capitalize(#strings.toLowerCase(m.name()))}" th:selected="${selectedMonth == m.value}"></option>
+                </select>
+            </div>
+            <div class="field">
+                <label for="paidYear">Paid Year</label>
+                <select id="paidYear" name="paidYear">
+                    <option value="">All paid years</option>
+                    <option th:each="y : ${paidYears}"
+                            th:value="${y}"
+                            th:text="${y}"
+                            th:selected="${selectedPaidYear == y}">
+                    </option>
+                </select>
+            </div>
+
+            <div class="field">
+                <label for="paidMonth">Paid Month</label>
+                <select id="paidMonth" name="paidMonth">
+                    <option value="">All paid months</option>
+                    <option th:each="m : ${months}"
+                            th:value="${m.value}"
+                            th:text="${#strings.capitalize(#strings.toLowerCase(m.name()))}"
+                            th:selected="${selectedPaidMonth == m.value}">
+                    </option>
+                </select>
+            </div>
+            <div class="field">
+                <label for="status">Status</label>
+                <select id="status" name="status">
+                    <option value="">All statuses</option>
+                    <option th:each="s : ${statuses}" th:value="${s.name()}" th:text="${s.label}" th:selected="${selectedStatus == s}"></option>
+                </select>
+            </div>
+        </div>
+        <div class="filter-actions">
+            <a class="button button-ghost button-compact" th:href="@{/records}">Clear</a>
+            <button class="button button-secondary button-compact" type="submit">Apply filters</button>
+        </div>
+    </form>
+
+    <section class="empty-state compact" th:if="${records.isEmpty()}">
+        <h2>No records found</h2>
+        <p>Try clearing the filters or add a monthly record.</p>
+    </section>
+
+    <section class="table-card" th:if="${!records.isEmpty()}">
+        <div class="table-meta"><span th:text="${records.size()} + ' records'"></span></div>
+        <div class="desktop-table-wrap">
+            <table class="data-table">
+                <thead>
+                <tr>
+                    <th>Client</th>
+                    <th>Work month</th>
+                    <th>Hours</th>
+                    <th>Status</th>
+                    <th>Received</th>
+                    <th>Paid month</th>
+                    <th>Note</th>
+                    <th></th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="record : ${records}">
+                    <td><a class="text-link strong" th:href="@{/clients/{id}(id=${record.client.id})}" th:text="${record.client.clientName}"></a></td>
+                    <td th:text="${#temporals.format(record.workMonth, 'MMM yyyy')}"></td>
+                    <td th:text="${#numbers.formatDecimal(record.workingHours, 1, 2)}"></td>
+                    <td><span class="status-badge" th:classappend="${record.paymentStatus.name() == 'FULL_PAID' ? ' full' : (record.paymentStatus.name() == 'PARTIALLY_PAID' ? ' partial' : ' unpaid')}" th:text="${record.paymentStatus.label}"></span></td>
+                    <td class="money" th:text="'$' + ${#numbers.formatDecimal(record.amountCredited, 1, 'COMMA', 2, 'POINT')}"></td>
+                    <td th:text="${record.paidMonth != null ? #temporals.format(record.paidMonth, 'MMM yyyy') : '—'}"></td>
+                    <td class="note-cell" th:text="${record.note != null ? record.note : '—'}"></td>
+                    <td><a class="text-link" th:href="@{/records/{id}/edit(id=${record.id})}">Edit</a></td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+        <div class="mobile-record-list">
+            <article class="mobile-record" th:each="record : ${records}">
+                <div class="mobile-record-head">
+                    <div>
+                        <a class="strong text-link" th:href="@{/clients/{id}(id=${record.client.id})}" th:text="${record.client.clientName}"></a>
+                        <span th:text="${#temporals.format(record.workMonth, 'MMMM yyyy')}"></span>
+                    </div>
+                    <span class="status-badge" th:classappend="${record.paymentStatus.name() == 'FULL_PAID' ? ' full' : (record.paymentStatus.name() == 'PARTIALLY_PAID' ? ' partial' : ' unpaid')}" th:text="${record.paymentStatus.label}"></span>
+                </div>
+                <div class="mobile-record-body">
+                    <div><span>Hours</span><strong th:text="${#numbers.formatDecimal(record.workingHours, 1, 2)}"></strong></div>
+                    <div><span>Received</span><strong th:text="'$' + ${#numbers.formatDecimal(record.amountCredited, 1, 'COMMA', 2, 'POINT')}"></strong></div>
+                    <div><span>Paid month</span><strong th:text="${record.paidMonth != null ? #temporals.format(record.paidMonth, 'MMM yyyy') : '—'}"></strong></div>
+                </div>
+                <p th:if="${record.note != null}" th:text="${record.note}"></p>
+                <a class="card-link" th:href="@{/records/{id}/edit(id=${record.id})}">Edit record <span>→</span></a>
+            </article>
+        </div>
+    </section>
+
+    <section class="transaction-summary" th:if="${!records.isEmpty()}">
+
+        <div class="transaction-summary-card hours-summary">
+            <span>Total Working Hours</span>
+            <strong th:text="${#numbers.formatDecimal(totalWorkingHours, 1, 2)} + ' hrs'">
+                0.00 hrs
+            </strong>
+            <small>Sum of hours in the current filtered results</small>
+        </div>
+
+        <div class="transaction-summary-card earnings-summary">
+            <span>Total Earned</span>
+            <strong th:text="'$' + ${#numbers.formatDecimal(totalEarned, 1, 'COMMA', 2, 'POINT')}">
+                $0.00
+            </strong>
+            <small>Sum of received amounts in the current filtered results</small>
+        </div>
+
+    </section>
+
+</main>
+<div th:replace="~{fragments/nav :: mobileNav('transactions')}"></div>
+<script th:src="@{/js/app.js}"></script>
+</body>
+</html>

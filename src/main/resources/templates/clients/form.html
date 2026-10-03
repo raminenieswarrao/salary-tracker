@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#0d1729">
+
+    <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
+    <title th:text="${pageTitle} + ' · Salary Tracker'">Client · Salary Tracker</title>
+    <link rel="stylesheet" th:href="@{/css/app.css}">
+</head>
+<body>
+<div th:replace="~{fragments/nav :: nav('dashboard')}"></div>
+<main class="page-shell narrow-shell">
+    <div class="breadcrumb-row">
+        <a th:href="${editMode} ? @{/clients/{id}(id=${client.id})} : @{/}">← Back</a>
+    </div>
+
+    <section class="form-card">
+        <div class="form-header">
+            <p class="eyebrow">CLIENT SETUP</p>
+            <h1 th:text="${pageTitle}">Add Client</h1>
+            <p>Create the contract profile once. Monthly payment details are added separately.</p>
+        </div>
+        <div th:replace="~{fragments/alerts :: alerts}"></div>
+
+        <form th:object="${clientForm}" th:action="${editMode} ? @{/clients/{id}(id=${client.id})} : @{/clients}" method="post" class="stack-form">
+            <div class="field full-span">
+                <label for="clientName">Client name</label>
+                <input id="clientName" type="text" th:field="*{clientName}" placeholder="e.g. LexisNexis" autocomplete="organization">
+                <small class="field-error" th:if="${#fields.hasErrors('clientName')}" th:errors="*{clientName}"></small>
+            </div>
+
+            <div class="form-grid">
+                <div class="field">
+                    <label for="actualStartDate">Actual start date</label>
+                    <input id="actualStartDate" type="date" th:field="*{actualStartDate}">
+                    <small>Pay start month is automatically based on this date.</small>
+                    <small class="field-error" th:if="${#fields.hasErrors('actualStartDate')}" th:errors="*{actualStartDate}"></small>
+                </div>
+                <div class="field">
+                    <label for="actualEndDate">Actual end date</label>
+                    <input id="actualEndDate" type="date" th:field="*{actualEndDate}">
+                    <small>Leave blank while the client is active.</small>
+                </div>
+                <div class="field">
+                    <label for="clientPayPerHour">Client pay / hour</label>
+                    <div class="input-prefix"><span>$</span><input id="clientPayPerHour" type="number" step="0.01" min="0" th:field="*{clientPayPerHour}" placeholder="0.00"></div>
+                    <small class="field-error" th:if="${#fields.hasErrors('clientPayPerHour')}" th:errors="*{clientPayPerHour}"></small>
+                </div>
+                <div class="field">
+                    <label for="vendorPercentage">Vendor percentage</label>
+                    <div class="input-suffix"><input id="vendorPercentage" type="number" step="0.01" min="0" max="100" th:field="*{vendorPercentage}" placeholder="0.00"><span>%</span></div>
+                    <small class="field-error" th:if="${#fields.hasErrors('vendorPercentage')}" th:errors="*{vendorPercentage}"></small>
+                </div>
+                <div class="field">
+                    <label for="payEndMonth">Pay end month</label>
+                    <input id="payEndMonth" type="month" th:field="*{payEndMonth}">
+                    <small>Optional. Leave blank while open.</small>
+                </div>
+            </div>
+
+            <div class="field full-span">
+                <label for="notes">Client notes</label>
+                <textarea id="notes" rows="4" th:field="*{notes}" placeholder="Optional notes about this client or contract"></textarea>
+            </div>
+
+            <div class="form-actions">
+                <a class="button button-secondary" th:href="${editMode} ? @{/clients/{id}(id=${client.id})} : @{/}">Cancel</a>
+                <button class="button button-primary" type="submit" th:text="${editMode} ? 'Save changes' : 'Add client'">Save</button>
+            </div>
+        </form>
+    </section>
+</main>
+<div th:replace="~{fragments/nav :: mobileNav('dashboard')}"></div>
+<script th:src="@{/js/app.js}"></script>
+</body>
+</html>

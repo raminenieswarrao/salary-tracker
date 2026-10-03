@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#0d1729">
+
+    <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
+    <title th:text="${client.clientName} + ' · Salary Tracker'">Client · Salary Tracker</title>
+    <link rel="stylesheet" th:href="@{/css/app.css}">
+</head>
+<body>
+<div th:replace="~{fragments/nav :: nav('dashboard')}"></div>
+<main class="page-shell">
+    <div th:replace="~{fragments/alerts :: alerts}"></div>
+
+    <div class="breadcrumb-row">
+        <a th:href="@{/}">← Dashboard</a>
+        <div class="action-row">
+            <a class="button button-secondary button-compact" th:href="@{/clients/{id}/edit(id=${client.id})}">Edit client</a>
+            <a class="button button-primary button-compact" th:href="@{/records/new(clientId=${client.id})}">+ Add month</a>
+        </div>
+    </div>
+
+    <section class="profile-hero">
+        <div class="profile-name-row">
+            <div class="client-avatar client-avatar-large" th:text="${#strings.substring(client.clientName,0,1).toUpperCase()}"></div>
+            <div>
+                <p class="eyebrow">CLIENT PROFILE</p>
+                <h1 th:text="${client.clientName}">Client</h1>
+                <p class="muted">Payment and working-hours history</p>
+            </div>
+        </div>
+        <div class="profile-contract">
+            <div><span>Actual start</span><strong th:text="${#temporals.format(client.actualStartDate, 'MMM d, yyyy')}"></strong></div>
+            <div><span>Actual end</span><strong th:text="${client.actualEndDate != null ? #temporals.format(client.actualEndDate, 'MMM d, yyyy') : 'Present'}"></strong></div>
+            <div><span>Pay start</span><strong th:text="${#temporals.format(client.payStartMonth, 'MMM yyyy')}"></strong></div>
+            <div><span>Pay end</span><strong th:text="${client.payEndMonth != null ? #temporals.format(client.payEndMonth, 'MMM yyyy') : 'Open'}"></strong></div>
+            <div><span>Client rate</span><strong th:text="'$' + ${#numbers.formatDecimal(client.clientPayPerHour, 1, 2)} + '/hr'"></strong></div>
+            <div><span>Vendor</span><strong th:text="${#numbers.formatDecimal(client.vendorPercentage, 1, 2)} + '%'"></strong></div>
+            <div><span>Your rate</span><strong th:text="'$' + ${#numbers.formatDecimal(client.effectivePayPerHour, 1, 2)} + '/hr'"></strong></div>
+            <div class="gross-salary-box">
+                <span>Gross Salary</span>
+                <strong th:text="'$' + ${#numbers.formatDecimal(summary.grossSalary(), 1, 'COMMA', 2, 'POINT')}">
+                    $0.00
+                </strong>
+            </div>
+        </div>
+        <p class="profile-notes" th:if="${client.notes != null}" th:text="${client.notes}"></p>
+    </section>
+
+    <section class="summary-grid">
+        <article class="summary-card summary-primary">
+            <span>Total received</span>
+            <strong th:text="'$' + ${#numbers.formatDecimal(summary.totalAmountReceived(), 1, 'COMMA', 2, 'POINT')}">$0.00</strong>
+            <small>Full + partial payments</small>
+        </article>
+        <article class="summary-card">
+            <span>Total working hours</span>
+            <strong th:text="${#numbers.formatDecimal(summary.totalWorkingHours(), 1, 2)}">0</strong>
+            <small>All recorded work months</small>
+        </article>
+        <article class="summary-card">
+            <span>Full paid hours</span>
+            <strong th:text="${#numbers.formatDecimal(summary.totalFullPaidHours(), 1, 2)}">0</strong>
+            <small>Only full-paid months</small>
+        </article>
+        <article class="summary-card summary-warning">
+            <span>Not paid hours</span>
+            <strong th:text="${#numbers.formatDecimal(summary.totalNotPaidHours(), 1, 2)}">0</strong>
+            <small>Partial + unpaid month hours</small>
+        </article>
+        <article class="summary-card">
+            <span>Partial month hours</span>
+            <strong th:text="${#numbers.formatDecimal(summary.totalPartialPaidMonthHours(), 1, 2)}">0</strong>
+            <small>Hours in partial-paid months</small>
+        </article>
+        <article class="summary-card">
+            <span>Partial amount received</span>
+            <strong th:text="'$' + ${#numbers.formatDecimal(summary.totalPartialAmountReceived(), 1, 'COMMA', 2, 'POINT')}">$0.00</strong>
+            <small>Money from partial months</small>
+        </article>
+    </section>
+
+    <section class="records-section">
+        <div class="section-heading">
+            <div>
+                <p class="eyebrow">MONTHLY HISTORY</p>
+                <h2>Payment records</h2>
+            </div>
+            <a class="button button-secondary button-compact" th:href="@{/records(clientId=${client.id})}">Filter records</a>
+        </div>
+
+        <div class="empty-state compact" th:if="${records.isEmpty()}">
+            <h3>No monthly records yet</h3>
+            <p>Add the first work month for this client.</p>
+            <a class="button button-primary" th:href="@{/records/new(clientId=${client.id})}">Add monthly record</a>
+        </div>
+
+        <div class="table-card" th:if="${!records.isEmpty()}">
+            <div class="desktop-table-wrap">
+                <table class="data-table">
+                    <thead>
+                    <tr>
+                        <th>Work month</th>
+                        <th>Hours</th>
+                        <th>Status</th>
+                        <th>Amount received</th>
+                        <th>Paid month</th>
+                        <th>Note</th>
+                        <th></th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="record : ${records}">
+                        <td class="strong" th:text="${#temporals.format(record.workMonth, 'MMM yyyy')}"></td>
+                        <td th:text="${#numbers.formatDecimal(record.workingHours, 1, 2)}"></td>
+                        <td><span class="status-badge" th:classappend="${record.paymentStatus.name() == 'FULL_PAID' ? ' full' : (record.paymentStatus.name() == 'PARTIALLY_PAID' ? ' partial' : ' unpaid')}" th:text="${record.paymentStatus.label}"></span></td>
+                        <td class="money" th:text="'$' + ${#numbers.formatDecimal(record.amountCredited, 1, 'COMMA', 2, 'POINT')}"></td>
+                        <td th:text="${record.paidMonth != null ? #temporals.format(record.paidMonth, 'MMM yyyy') : '—'}"></td>
+                        <td class="note-cell" th:text="${record.note != null ? record.note : '—'}"></td>
+                        <td><a class="text-link" th:href="@{/records/{id}/edit(id=${record.id})}">Edit</a></td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="mobile-record-list">
+                <article class="mobile-record" th:each="record : ${records}">
+                    <div class="mobile-record-head">
+                        <div>
+                            <strong th:text="${#temporals.format(record.workMonth, 'MMMM yyyy')}"></strong>
+                            <span th:text="${#numbers.formatDecimal(record.workingHours, 1, 2)} + ' hrs'"></span>
+                        </div>
+                        <span class="status-badge" th:classappend="${record.paymentStatus.name() == 'FULL_PAID' ? ' full' : (record.paymentStatus.name() == 'PARTIALLY_PAID' ? ' partial' : ' unpaid')}" th:text="${record.paymentStatus.label}"></span>
+                    </div>
+                    <div class="mobile-record-body">
+                        <div><span>Received</span><strong th:text="'$' + ${#numbers.formatDecimal(record.amountCredited, 1, 'COMMA', 2, 'POINT')}"></strong></div>
+                        <div><span>Paid month</span><strong th:text="${record.paidMonth != null ? #temporals.format(record.paidMonth, 'MMM yyyy') : '—'}"></strong></div>
+                    </div>
+                    <p th:if="${record.note != null}" th:text="${record.note}"></p>
+                    <a class="card-link" th:href="@{/records/{id}/edit(id=${record.id})}">Edit record <span>→</span></a>
+                </article>
+            </div>
+        </div>
+    </section>
+
+    <section class="danger-zone">
+        <div>
+            <h3>Delete client</h3>
+            <p>This also deletes every monthly payment record for this client.</p>
+        </div>
+        <form th:action="@{/clients/{id}/delete(id=${client.id})}" method="post" data-confirm="Delete this client and all monthly records? This cannot be undone.">
+            <button class="button button-danger button-compact" type="submit">Delete client</button>
+        </form>
+    </section>
+</main>
+<div th:replace="~{fragments/nav :: mobileNav('dashboard')}"></div>
+<script th:src="@{/js/app.js}"></script>
+</body>
+</html>

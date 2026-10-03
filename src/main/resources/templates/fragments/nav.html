@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<header th:fragment="nav(active)" class="app-header">
+    <div class="nav-shell">
+        <a class="brand" th:href="@{/}">
+            <span class="brand-mark">ST</span>
+            <span>
+                <strong>Salary Tracker</strong>
+                <small>Client payment workspace</small>
+            </span>
+        </a>
+        <nav class="desktop-nav" aria-label="Primary navigation">
+            <a th:href="@{/}" th:classappend="${active == 'dashboard'} ? ' active' : ''">Dashboard</a>
+            <a th:href="@{/records}" th:classappend="${active == 'transactions'} ? ' active' : ''">Transactions</a>
+        </nav>
+        <a class="button button-primary button-compact desktop-action" th:href="@{/clients/new}">+ Add Client</a>
+    </div>
+</header>
+
+<nav th:fragment="mobileNav(active)" class="mobile-nav" aria-label="Mobile navigation">
+    <a th:href="@{/}" th:classappend="${active == 'dashboard'} ? ' active' : ''">
+        <span>⌂</span><small>Home</small>
+    </a>
+    <a th:href="@{/records}" th:classappend="${active == 'transactions'} ? ' active' : ''">
+        <span>▤</span><small>Transactions</small>
+    </a>
+    <a th:href="@{/clients/new}">
+        <span>＋</span><small>Client</small>
+    </a>
+</nav>
+</body>
+</html>

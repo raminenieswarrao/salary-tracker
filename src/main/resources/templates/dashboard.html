@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#0d1729">
+
+    <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
+    <title>Dashboard · Salary Tracker</title>
+    <link rel="stylesheet" href="/css/app.css">
+</head>
+<body>
+<div th:replace="~{fragments/nav :: nav('dashboard')}"></div>
+<main class="page-shell dashboard-page">
+    <div th:replace="~{fragments/alerts :: alerts}"></div>
+
+    <section class="hero-panel">
+        <div>
+            <p class="eyebrow">PAYMENT OVERVIEW</p>
+            <h1>Your client income, organized month by month.</h1>
+            <p class="hero-copy">Track worked hours, money received, partial payments, unpaid months, and exactly when each payment arrived.</p>
+        </div>
+        <div class="hero-actions">
+            <a class="button button-primary" th:href="@{/clients/new}">+ Add new client</a>
+            <a class="button button-secondary" th:href="@{/records/new}" th:if="${!clients.isEmpty()}">+ Add monthly record</a>
+        </div>
+    </section>
+
+    <section class="section-heading">
+        <div>
+            <p class="eyebrow">CLIENTS</p>
+            <h2>Client profiles</h2>
+        </div>
+        <span class="count-pill" th:text="${clients.size()} + ' total'"></span>
+    </section>
+
+    <section class="empty-state" th:if="${clients.isEmpty()}">
+        <div class="empty-icon">＋</div>
+        <h2>Add your first client</h2>
+        <p>Create a client profile, then start adding monthly work and payment records.</p>
+        <a class="button button-primary" th:href="@{/clients/new}">Create client</a>
+    </section>
+
+    <section class="client-grid" th:if="${!clients.isEmpty()}">
+        <article class="client-card" th:each="client : ${clients}">
+            <div class="client-card-head">
+                <div class="client-avatar" th:text="${#strings.substring(client.clientName,0,1).toUpperCase()}"></div>
+                <div class="client-title">
+                    <h3 th:text="${client.clientName}">Client Name</h3>
+                    <p>
+                        <span th:text="${#temporals.format(client.actualStartDate, 'MMM yyyy')}"></span>
+                        <span> → </span>
+                        <span th:text="${client.actualEndDate != null ? #temporals.format(client.actualEndDate, 'MMM yyyy') : 'Present'}"></span>
+                    </p>
+                </div>
+                <a class="icon-button" th:href="@{/clients/{id}/edit(id=${client.id})}" aria-label="Edit client">✎</a>
+            </div>
+
+            <div class="mini-metrics">
+                <div>
+                    <span>Worked</span>
+                    <strong th:text="${#numbers.formatDecimal(summaries[client.id].totalWorkingHours(), 1, 2)} + ' hrs'">0 hrs</strong>
+                </div>
+                <div>
+                    <span>Received</span>
+                    <strong th:text="'$' + ${#numbers.formatDecimal(summaries[client.id].totalAmountReceived(), 1, 'COMMA', 2, 'POINT')}">$0.00</strong>
+                </div>
+                <div>
+                    <span>Full paid</span>
+                    <strong th:text="${#numbers.formatDecimal(summaries[client.id].totalFullPaidHours(), 1, 2)} + ' hrs'">0 hrs</strong>
+                </div>
+                <div>
+                    <span>Not paid hrs</span>
+                    <strong th:text="${#numbers.formatDecimal(summaries[client.id].totalNotPaidHours(), 1, 2)} + ' hrs'">0 hrs</strong>
+                </div>
+            </div>
+
+            <div class="status-strip">
+                <span class="status-dot status-full"></span>
+                <span th:text="${summaries[client.id].fullPaidMonths()} + ' full'">0 full</span>
+                <span class="status-dot status-partial"></span>
+                <span th:text="${summaries[client.id].partiallyPaidMonths()} + ' partial'">0 partial</span>
+                <span class="status-dot status-unpaid"></span>
+                <span th:text="${summaries[client.id].notPaidMonths()} + ' unpaid'">0 unpaid</span>
+            </div>
+
+            <a class="card-link" th:href="@{/clients/{id}(id=${client.id})}">
+                View client profile <span>→</span>
+            </a>
+        </article>
+    </section>
+</main>
+<div th:replace="~{fragments/nav :: mobileNav('dashboard')}"></div>
+<script th:src="@{/js/app.js}"></script>
+</body>
+</html>

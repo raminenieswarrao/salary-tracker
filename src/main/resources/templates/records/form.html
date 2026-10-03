@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#0d1729">
+
+    <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
+    <title th:text="${pageTitle} + ' · Salary Tracker'">Monthly Record · Salary Tracker</title>
+    <link rel="stylesheet" th:href="@{/css/app.css}">
+</head>
+<body>
+<div th:replace="~{fragments/nav :: nav('transactions')}"></div>
+<main class="page-shell narrow-shell">
+    <div class="breadcrumb-row">
+        <a th:href="${editMode} ? @{/clients/{id}(id=${record.client.id})} : @{/records}">← Back</a>
+    </div>
+
+    <section class="form-card">
+        <div class="form-header">
+            <p class="eyebrow">MONTHLY PAYMENT</p>
+            <h1 th:text="${pageTitle}">Add Monthly Record</h1>
+            <p>One record represents one client's work month and the payment status for that month.</p>
+        </div>
+        <div th:replace="~{fragments/alerts :: alerts}"></div>
+
+        <form th:object="${recordForm}" th:action="${editMode} ? @{/records/{id}(id=${record.id})} : @{/records}" method="post" class="stack-form" id="recordForm">
+            <div class="form-grid">
+                <div class="field full-span">
+                    <label for="clientId">Client</label>
+                    <select id="clientId" th:field="*{clientId}">
+                        <option value="">Select a client</option>
+                        <option th:each="client : ${clients}" th:value="${client.id}" th:text="${client.clientName}"></option>
+                    </select>
+                    <small class="field-error" th:if="${#fields.hasErrors('clientId')}" th:errors="*{clientId}"></small>
+                </div>
+                <div class="field">
+                    <label for="workMonth">Work month</label>
+                    <input id="workMonth" type="month" th:field="*{workMonth}">
+                    <small class="field-error" th:if="${#fields.hasErrors('workMonth')}" th:errors="*{workMonth}"></small>
+                </div>
+                <div class="field">
+                    <label for="workingHours">Working hours</label>
+                    <input id="workingHours" type="number" min="0" step="0.01" th:field="*{workingHours}" placeholder="168">
+                    <small class="field-error" th:if="${#fields.hasErrors('workingHours')}" th:errors="*{workingHours}"></small>
+                </div>
+            </div>
+
+            <fieldset class="status-fieldset">
+                <legend>Payment status</legend>
+                <div class="status-options">
+                    <label class="status-option status-option-full">
+                        <input type="radio" th:field="*{paymentStatus}" value="FULL_PAID">
+                        <span><strong>Full paid</strong><small>Entire month considered fully paid</small></span>
+                    </label>
+                    <label class="status-option status-option-partial">
+                        <input type="radio" th:field="*{paymentStatus}" value="PARTIALLY_PAID">
+                        <span><strong>Partially paid</strong><small>Entire month's hours remain in not-paid hours</small></span>
+                    </label>
+                    <label class="status-option status-option-unpaid">
+                        <input type="radio" th:field="*{paymentStatus}" value="NOT_PAID">
+                        <span><strong>Not paid</strong><small>Amount credited must be $0.00</small></span>
+                    </label>
+                </div>
+                <small class="field-error" th:if="${#fields.hasErrors('paymentStatus')}" th:errors="*{paymentStatus}"></small>
+            </fieldset>
+
+            <div class="form-grid">
+                <div class="field">
+                    <label for="amountCredited">Amount credited</label>
+                    <div class="input-prefix"><span>$</span><input id="amountCredited" type="number" min="0" step="0.01" th:field="*{amountCredited}" placeholder="0.00"></div>
+                    <small>Actual amount received for this work month.</small>
+                    <small class="field-error" th:if="${#fields.hasErrors('amountCredited')}" th:errors="*{amountCredited}"></small>
+                </div>
+                <div class="field" id="paidMonthField">
+                    <label for="paidMonth">Paid month</label>
+                    <input id="paidMonth" type="month" th:field="*{paidMonth}">
+                    <small>Month when the money reached you.</small>
+                </div>
+            </div>
+
+            <div class="field full-span">
+                <label for="note">Note</label>
+                <textarea id="note" rows="4" th:field="*{note}" placeholder="Optional note for this month's record"></textarea>
+            </div>
+
+            <div class="form-actions form-actions-split">
+                <div>
+                    <button th:if="${editMode}" class="button button-danger button-ghost" type="submit"
+                            th:formaction="@{/records/{id}/delete(id=${record.id})}"
+                            formmethod="post"
+                            data-confirm="Delete this monthly record? This cannot be undone.">Delete</button>
+                </div>
+                <div class="action-row">
+                    <a class="button button-secondary" th:href="${editMode} ? @{/clients/{id}(id=${record.client.id})} : @{/records}">Cancel</a>
+                    <button class="button button-primary" type="submit" th:text="${editMode} ? 'Save changes' : 'Add record'">Save</button>
+                </div>
+            </div>
+        </form>
+    </section>
+</main>
+<div th:replace="~{fragments/nav :: mobileNav('transactions')}"></div>
+<script th:src="@{/js/app.js}"></script>
+</body>
+</html>

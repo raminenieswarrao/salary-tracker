@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
+    <title>Something went wrong · Salary Tracker</title>
+    <link rel="stylesheet" th:href="@{/css/app.css}">
+</head>
+<body>
+<div th:replace="~{fragments/nav :: nav('')}"></div>
+<main class="page-shell narrow-shell">
+    <section class="empty-state error-state">
+        <div class="empty-icon">!</div>
+        <h1>We couldn't complete that action</h1>
+        <p th:text="${message != null ? message : 'An unexpected error occurred.'}"></p>
+        <a class="button button-primary" th:href="@{/}">Back to dashboard</a>
+    </section>
+</main>
+<div th:replace="~{fragments/nav :: mobileNav('')}"></div>
+</body>
+</html>

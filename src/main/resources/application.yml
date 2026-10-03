@@ -1,0 +1,25 @@
+spring:
+  application:
+    name: salary-tracker
+  datasource:
+    url: ${SALARY_DB_URL:jdbc:postgresql://localhost:5432/salary_tracker}
+    username: ${SALARY_DB_USER:salary_app}
+    password: ${SALARY_DB_PASSWORD:}
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        format_sql: true
+  thymeleaf:
+    cache: false
+
+server:
+  port: ${SERVER_PORT:8080}
+  error:
+    include-message: never
+
+logging:
+  level:
+    org.hibernate.SQL: WARN
