@@ -17,6 +17,8 @@ spring:
 
 server:
   port: ${SERVER_PORT:8080}
+  servlet:
+    context-path: ${SERVER_CONTEXT_PATH:}
   error:
     include-message: never
 
